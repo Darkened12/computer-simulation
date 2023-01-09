@@ -29,6 +29,8 @@ The ALU has more operations that I haven't implemented on the CPU yet, like the 
 
 The assembler and its assembly syntax I made myself. I'm not experienced with assembly, so after an extensive read I came up with the most basic yet effective syntax I could think of for my simple 4 bit computer.
 
+There's an already written [simple script](scripts/count_to_ten.asm) on `/scripts` if you want to quick see how the syntax is like.
+
 ### Comments
 
 Any line without instructions contaning a `;` sign will be ignored. If the line contains code, anything after the `;` sign will be ignored:
