@@ -1,0 +1,3 @@
+st 0x0F 0x03
+ld reg1 0x0F
+add reg1, reg0
