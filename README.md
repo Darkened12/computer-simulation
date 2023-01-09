@@ -29,11 +29,20 @@ The ALU has more operations that I haven't implemented on the CPU yet, like the 
 
 The assembler and its assembly syntax I made myself. I'm not experienced with assembly, so after an extensive read I came up with the most basic yet effective syntax I could think of for my simple 4 bit computer.
 
+### Comments
+
+Any line without instructions contaning a `;` sign will be ignored. If the line contains code, anything after the `;` sign will be ignored:
+
+```asm
+section. data
+    someVariable = 0    ; hey look! it's an empty variable!
+```
+
 ### `section .data`
 
 Here is where you declare your variables. The syntax is like this:
 
-```
+```asm
 section .data
     variableName = 2
 ```
@@ -48,7 +57,7 @@ section .data
 Yoy may pass a direct integer value (between 0-255) or you may pass a RAM address reference using the `$` sign. It needs to be an integer and it will select 
 an horizontal line of the RAM (1 byte):
 
-```
+```asm
 section. data
     variableWithDirectValue = 255
     someValueInRam = $15
@@ -69,7 +78,7 @@ Here are all the instructions and its syntax:
 
 Loads the content of the given RAM addres or the variable into the selected register:
 
-```
+```asm
 ld ax, someVariable
 ```
 
@@ -77,10 +86,35 @@ ld ax, someVariable
 
 Stores the content inside the register to the given RAM address or the variable:
 
-```
+```asm
 st bx, $10
 ```
 
+#### `add [ax | bx], [ax | bx]`
+
+Add two registers together, and the output is saved on the last register reference sent. On this example:
+
+```asm
+add ax, bx
+```
+`ax` would be added to `bx` and the result would be stored inside `bx`.
+
+#### `sub [ax | bx], [ax | bx]`
+
+Same as before, doesn't need further explanation. Just be aware of negative numbers.
+
+#### `jie [variableName | ramReference]`
+
+Jumps to the given RAM reference/variable name if `ax`'s value is equal to `bx`s: 
+
+```asm
+section. text
+    jie $0      ; infinite loop
+```
+
+#### `jne [variableName | ramReference]`
+
+Same as above, but jump only if `ax`'s value is not equal to `bx`'s value.
 
 
 ## Getting Started
