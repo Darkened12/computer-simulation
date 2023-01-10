@@ -1,4 +1,4 @@
-# A 4 bit computer simulation using Python to move 0's and 1's around
+# An 8 bit computer simulation using Python to move 0's and 1's around
 
 It uses 4 bit opcodes and 4 bit RAM addresses. It parsers 8 bit of data at once, and does not use more than 1 line for the same operation. 
 It has 4 registers: 2 for general-purpose, 1 for program counter, and the other for instruction addresses.
