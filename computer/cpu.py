@@ -15,7 +15,19 @@ class CentralProcessingUnit:
         self.register_B = Register()
         self.instruction_address_register = Register()
         self.instruction_register = Register()
-        self.instructions = [self.HLT, self.LDA, self.LDB, self.STA, self.STB, self.ADD, self.SUB, self.JIE, self.JNE]
+        self.instructions = [
+            self.HLT,
+            self.LDA,
+            self.LDB,
+            self.STA,
+            self.STB,
+            self.ADD,
+            self.SUB,
+            self.JIE,
+            self.JNE,
+            self.INC,
+            self.DEC
+        ]
         self.instruction_selector = Demultiplexer(self.instructions)
         self.register_selector = Demultiplexer([self.register_A, self.register_B])
 
@@ -74,6 +86,8 @@ class CentralProcessingUnit:
                      self.ram]:
             unit.read_enable = false
             unit.write_enable = false
+        self.alu.A = BitArray(0, size=8)
+        self.alu.B = BitArray(0, size=8)
 
     def cycle(self):
         def execute_cycle():
@@ -176,4 +190,32 @@ class CentralProcessingUnit:
         self.alu.opcode = BitArray('0001')
         self._not_skip_increment = self.alu.zero_bit_flag
         self.instruction_address_register.write_enable = ~self.alu.zero_bit_flag
-        self.instruction_address_register.memory = BitArray(sum([bit for bit in address]), size=4)
+        instruction_address = BitArray(sum([bit for bit in address]), size=4)
+        print(instruction_address)
+        self.instruction_address_register.memory = instruction_address
+
+    def INC(self, register: BitArray):
+        self.register_selector.selection = BitArray(register.to_int(), size=2)
+        selected_register: Register = self.register_selector.output
+        selected_register.read_enable = Bit(1)
+
+        self.alu.A = selected_register.memory
+        self.alu.opcode = BitArray('0011')
+
+        selected_register.read_enable = Bit(0)
+        selected_register.write_enable = Bit(1)
+
+        selected_register.memory = self.alu.output
+
+    def DEC(self, register: BitArray):
+        self.register_selector.selection = BitArray(register.to_int(), size=2)
+        selected_register: Register = self.register_selector.output
+        selected_register.read_enable = Bit(1)
+
+        self.alu.A = selected_register.memory
+        self.alu.opcode = BitArray('0100')
+
+        selected_register.read_enable = Bit(0)
+        selected_register.write_enable = Bit(1)
+
+        selected_register.memory = self.alu.output
