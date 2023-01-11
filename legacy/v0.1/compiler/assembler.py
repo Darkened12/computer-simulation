@@ -149,4 +149,4 @@ class CompilerError(Exception):
 
 
 if __name__ == '__main__':
-    Assembler('../../v1/scripts/main.s', 'main.exec').compile()
+    Assembler('../scripts/main.s', 'main.exec').compile()
