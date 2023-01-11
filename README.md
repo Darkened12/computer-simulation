@@ -1,4 +1,4 @@
-# A 4 bit computer simulation using Python to move 0's and 1's around
+# An 8 bit computer simulation using Python to move 0's and 1's around
 
 It uses 4 bit opcodes and 4 bit RAM addresses. It parsers 8 bit of data at once, and does not use more than 1 line for the same operation. 
 It has 4 registers: 2 for general-purpose, 1 for program counter, and the other for instruction addresses.
@@ -42,7 +42,7 @@ section. data
 
 ### `section .data`
 
-Here is where you declare your variables. The syntax is like this:
+Here is where you declare your variables. The only datatype supported is non-negative `int8` (between 0-255), so there's no need to declare the type. The syntax is like this:
 
 ```asm
 section .data
@@ -56,7 +56,7 @@ section .data
 
 #### Value: 
 
-Yoy may pass a direct integer value (between 0-255) or you may pass a RAM address reference using the `$` sign. It needs to be an integer and it will select 
+You may pass a direct integer value (between 0-255) or you may pass a RAM address reference using the `$` sign. It needs to be an integer and it will select 
 an horizontal line of the RAM (1 byte):
 
 ```asm
