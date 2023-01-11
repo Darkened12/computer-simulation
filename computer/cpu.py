@@ -175,7 +175,8 @@ class CentralProcessingUnit:
         self.alu.opcode = BitArray('0001')
         self._not_skip_increment = ~self.alu.zero_bit_flag
         self.instruction_address_register.write_enable = self.alu.zero_bit_flag
-        self.instruction_address_register.memory = BitArray(sum([bit for bit in address]), size=4)
+        instruction_address = BitArray(address.to_int(), size=4)
+        self.instruction_address_register.memory = instruction_address
 
     def JNE(self, address: BitArray):
         true = Bit(1)
@@ -190,8 +191,7 @@ class CentralProcessingUnit:
         self.alu.opcode = BitArray('0001')
         self._not_skip_increment = self.alu.zero_bit_flag
         self.instruction_address_register.write_enable = ~self.alu.zero_bit_flag
-        instruction_address = BitArray(sum([bit for bit in address]), size=4)
-        print(instruction_address)
+        instruction_address = BitArray(address.to_int(), size=4)
         self.instruction_address_register.memory = instruction_address
 
     def INC(self, register: BitArray):
