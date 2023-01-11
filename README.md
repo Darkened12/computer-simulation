@@ -42,7 +42,7 @@ section. data
 
 ### `section .data`
 
-Here is where you declare your variables. The syntax is like this:
+Here is where you declare your variables. The only datatype supported is `int16`, so there's no need to declare the type. The syntax is like this:
 
 ```asm
 section .data
@@ -56,7 +56,7 @@ section .data
 
 #### Value: 
 
-Yoy may pass a direct integer value (between 0-255) or you may pass a RAM address reference using the `$` sign. It needs to be an integer and it will select 
+You may pass a direct integer value (between 0-255) or you may pass a RAM address reference using the `$` sign. It needs to be an integer and it will select 
 an horizontal line of the RAM (1 byte):
 
 ```asm
