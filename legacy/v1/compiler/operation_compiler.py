@@ -15,7 +15,9 @@ class OperationCompiler:
             'add': '0101',
             'sub': '0110',
             'jie': '0111',
-            'jne': '1000'
+            'jne': '1000',
+            'inc': '1001',
+            'dec': '1010'
         }
         self.methods = {
             'ld': self.load,
@@ -25,6 +27,8 @@ class OperationCompiler:
             'mov': self.move,
             'jie': self.jmpeq,
             'jne': self.jmpne,
+            'inc': self.increment,
+            'dec': self.decrement,
         }
         self.register_codes = {
             'ax': '00',
@@ -120,3 +124,13 @@ class OperationCompiler:
         opcode = self.get_opcode(line)
         memory_address = self._get_ram_address(line)
         return f'{opcode}{memory_address}'
+
+    def increment(self, line: Dict[str, str]) -> str:
+        opcode = self.get_opcode(line)
+        register_address = self.get_register_address(line['first_statement'])
+        return f'{opcode}00{register_address}'
+
+    def decrement(self, line: Dict[str, str]) -> str:
+        opcode = self.get_opcode(line)
+        register_address = self.get_register_address(line['first_statement'])
+        return f'{opcode}00{register_address}'
