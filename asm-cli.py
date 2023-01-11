@@ -63,11 +63,11 @@ def _main():
         output_file_path = assembly_file_path
 
     if should_also_run or run_only:
-        from computer.cpu import CentralProcessingUnit
-        cpu = CentralProcessingUnit()
-        cpu.ram.from_list(_bin_loader(output_file_path))
-        cpu.run()
-        cpu.status()
+        from computer.computer import Computer
+        computer = Computer()
+        computer.ram.from_list(_bin_loader(output_file_path))
+        computer.run()
+        computer.status()
 
 
 if __name__ == '__main__':

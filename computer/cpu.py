@@ -1,14 +1,15 @@
 import time
-from .base import Bit, BitArray, Demultiplexer
+
 from .alu import ArithmeticLogicUnit
+from .base import Bit, BitArray, Demultiplexer
 from .memory import Register, RandomAccessMemory
 
 
 class CentralProcessingUnit:
-    def __init__(self, time_between_cycles: float = 0):
-        self.time_between_cycles = time_between_cycles
-        self.alu = ArithmeticLogicUnit()
-        self.ram = RandomAccessMemory(size_in_bytes=16)
+    def __init__(self, alu: ArithmeticLogicUnit, ram: RandomAccessMemory, clock_speed_limiter_in_hertz: int = 0):
+        self.clock_speed_limiter_in_hertz = clock_speed_limiter_in_hertz
+        self.alu = alu
+        self.ram = ram
 
         self.register_A = Register()
         self.register_B = Register()
@@ -23,6 +24,14 @@ class CentralProcessingUnit:
         self._halt = Bit(0)
         self._not_skip_increment = Bit(1)
         self._cycle_counter = 0
+
+    @property
+    def halt(self):
+        return self._halt
+
+    @property
+    def cycle_counter(self):
+        return self._cycle_counter
 
     def increment_program_counter(self):
         false = Bit(0)
@@ -67,24 +76,22 @@ class CentralProcessingUnit:
             unit.write_enable = false
 
     def cycle(self):
-        self.fetch_phase()
-        self.decode_phase()
-        self.execute_phase()
-        self.end_phase()
-        time.sleep(self.time_between_cycles)
+        def execute_cycle():
+            self.fetch_phase()
+            self.decode_phase()
+            self.execute_phase()
+            self.end_phase()
+
+        if self.clock_speed_limiter_in_hertz > 0:
+            start_time = time.perf_counter()
+            execute_cycle()
+            end_time = time.perf_counter()
+            elapsed_time = end_time - start_time
+            time.sleep(1 / self.clock_speed_limiter_in_hertz - elapsed_time)
+        else:
+            execute_cycle()
+
         self._cycle_counter += 1
-
-    def run(self):
-        while not self._halt:
-            self.cycle()
-
-    def status(self):
-        print(f'cycles: {self._cycle_counter}\n'
-              f'program_counter: {self.instruction_address_register}\n'
-              f'ax: {self.register_A}\n'
-              f'bx: {self.register_B}\n'
-              f'ram:\n'
-              f'{self.ram}')
 
     def LDA(self, address: BitArray):
         """Load contents of RAM {address} into the Register A"""
