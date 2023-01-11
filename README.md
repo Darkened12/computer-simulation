@@ -42,7 +42,7 @@ section. data
 
 ### `section .data`
 
-Here is where you declare your variables. The only datatype supported is `int16`, so there's no need to declare the type. The syntax is like this:
+Here is where you declare your variables. The only datatype supported is non-negative `int8` (between 0-255), so there's no need to declare the type. The syntax is like this:
 
 ```asm
 section .data
