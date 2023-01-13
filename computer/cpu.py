@@ -34,8 +34,12 @@ class CentralProcessingUnit:
             self.HLT,
             self.LDA,
             self.LDB,
+            self.LDC,
+            self.LDD,
             self.STA,
             self.STB,
+            self.STC,
+            self.STD,
             self.ADD,
             self.SUB,
             self.INC,
@@ -52,7 +56,7 @@ class CentralProcessingUnit:
             self.register_B,
             self.register_C,
             self.register_D,
-            self.program_counter_register,
+            self.accumulator_register,
             self.status_register
         ])
 
@@ -166,33 +170,55 @@ class CentralProcessingUnit:
         self.accumulator_register.write_enable = Bit(0)
         self.update_status_register()
 
+    def _load(self, register_address: BitArray, ram_address: BitArray):
+        self.ram.address = ram_address
+        self.ram.read_enable = Bit(1)
+        self.register_selector.selection = register_address
+        selected_register = self.register_selector.output
+        selected_register.write_enable = Bit(1)
+        selected_register.memory = self.ram.bus
+
+    def _store(self, register_address: BitArray, ram_address: BitArray):
+        self.ram.address = ram_address
+        self.ram.write_enable = Bit(1)
+
+        self.register_selector.selection = register_address
+        selected_register = self.register_selector.output
+
+        selected_register.read_enable = Bit(1)
+        self.ram.bus = selected_register.memory
+
     def LDA(self, address: BitArray):
         """Load contents of RAM {address} into the Register A"""
-        self.ram.address = address
-        self.ram.read_enable = Bit(1)
-        self.register_A.write_enable = Bit(1)
-        self.register_A.memory = self.ram.bus
+        self._load(register_address=BitArray('0000'), ram_address=address)
 
     def LDB(self, address: BitArray):
         """Load contents of RAM {address} into the Register B"""
-        self.ram.address = address
-        self.ram.read_enable = Bit(1)
-        self.register_B.write_enable = Bit(1)
-        self.register_B.memory = self.ram.bus
+        self._load(register_address=BitArray('0001'), ram_address=address)
+
+    def LDC(self, address: BitArray):
+        """Load contents of RAM {address} into the Register C"""
+        self._load(register_address=BitArray('0010'), ram_address=address)
+
+    def LDD(self, address: BitArray):
+        """Load contents of RAM {address} into the Register D"""
+        self._load(register_address=BitArray('0011'), ram_address=address)
 
     def STA(self, address: BitArray):
         """Stores contents on RAM {address} from Register A"""
-        self.ram.address = address
-        self.ram.write_enable = Bit(1)
-        self.register_A.read_enable = Bit(1)
-        self.ram.bus = self.register_A.memory
+        self._store(register_address=BitArray('0000'), ram_address=address)
 
     def STB(self, address: BitArray):
         """Stores contents on RAM {address} from Register B"""
-        self.ram.address = address
-        self.ram.write_enable = Bit(1)
-        self.register_B.read_enable = Bit(1)
-        self.ram.bus = self.register_B.memory
+        self._store(register_address=BitArray('0001'), ram_address=address)
+
+    def STC(self, address: BitArray):
+        """Stores contents on RAM {address} from Register C"""
+        self._store(register_address=BitArray('0010'), ram_address=address)
+
+    def STD(self, address: BitArray):
+        """Stores contents on RAM {address} from Register D"""
+        self._store(register_address=BitArray('0011'), ram_address=address)
 
     def HLT(self, *args, **kwargs):
         self._halt = Bit(1)
