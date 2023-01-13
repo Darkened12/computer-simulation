@@ -38,10 +38,11 @@ class CentralProcessingUnit:
             self.STB,
             self.ADD,
             self.SUB,
+            self.INC,
+            self.DEC,
+            self.CMP,
             self.JIE,
             self.JNE,
-            self.INC,
-            self.DEC
         ]
         self.instruction_selector = Demultiplexer(self.instructions)
         self.register_selector = Demultiplexer([
@@ -214,6 +215,52 @@ class CentralProcessingUnit:
     def SUB(self, registers: BitArray):
         self._add_sub('0001', registers)
 
+    def INC(self, register: BitArray):
+        self.register_selector.selection = BitArray(register.to_int(), size=2)
+        selected_register: Register = self.register_selector.output
+        selected_register.read_enable = Bit(1)
+
+        self.alu.A = selected_register.memory
+        self.alu.opcode = BitArray('0011')
+
+        selected_register.read_enable = Bit(0)
+        selected_register.write_enable = Bit(1)
+
+        selected_register.memory = self.alu.output
+        self.update_status_register()
+
+    def DEC(self, register: BitArray):
+        self.register_selector.selection = BitArray(register.to_int(), size=2)
+        selected_register: Register = self.register_selector.output
+        selected_register.read_enable = Bit(1)
+
+        self.alu.A = selected_register.memory
+        self.alu.opcode = BitArray('0100')
+
+        selected_register.read_enable = Bit(0)
+        selected_register.write_enable = Bit(1)
+
+        selected_register.memory = self.alu.output
+        self.update_status_register()
+
+    def CMP(self, registers: BitArray):
+        true = Bit(1)
+
+        reg1_address = BitArray(sum(registers[2:]))
+        reg2_address = BitArray(sum(registers[:2]))
+        self.register_selector.selection = reg1_address
+        reg1 = self.register_selector.output
+        self.register_selector.selection = reg2_address
+        reg2 = self.register_selector.output
+        reg1.read_enable = true
+        reg2.read_enable = true
+
+        self.alu.A = reg1.memory
+        self.alu.B = reg2.memory
+        self.alu.opcode = BitArray('0001')
+
+        self.update_status_register()
+
     def JIE(self, address: BitArray):
         true = Bit(1)
         self.register_selector.selection = BitArray('00', size=2)
@@ -245,31 +292,3 @@ class CentralProcessingUnit:
         self.program_counter_register.write_enable = ~self.alu.zero_bit_flag
         instruction_address = BitArray(address.to_int(), size=4)
         self.program_counter_register.memory = instruction_address
-
-    def INC(self, register: BitArray):
-        self.register_selector.selection = BitArray(register.to_int(), size=2)
-        selected_register: Register = self.register_selector.output
-        selected_register.read_enable = Bit(1)
-
-        self.alu.A = selected_register.memory
-        self.alu.opcode = BitArray('0011')
-
-        selected_register.read_enable = Bit(0)
-        selected_register.write_enable = Bit(1)
-
-        selected_register.memory = self.alu.output
-        self.update_status_register()
-
-    def DEC(self, register: BitArray):
-        self.register_selector.selection = BitArray(register.to_int(), size=2)
-        selected_register: Register = self.register_selector.output
-        selected_register.read_enable = Bit(1)
-
-        self.alu.A = selected_register.memory
-        self.alu.opcode = BitArray('0100')
-
-        selected_register.read_enable = Bit(0)
-        selected_register.write_enable = Bit(1)
-
-        selected_register.memory = self.alu.output
-        self.update_status_register()
