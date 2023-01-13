@@ -69,7 +69,7 @@ class ArithmeticLogicUnit:
         selected_action()
 
     def ADD(self):
-        self._output = self.A + self.B
+        self._set_output(self.A + self.B)
 
     def SUB(self):
         output = self.A - self.B
