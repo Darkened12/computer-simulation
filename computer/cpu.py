@@ -22,7 +22,7 @@ class CentralProcessingUnit:
         self.accumulator_register = Register(size_in_bits=8)
         self.status_register = Register(size_in_bits=8)
 
-        self.registers = [
+        self.selectable_registers = [
             self.register_A,
             self.register_B,
             self.register_C,
@@ -119,7 +119,7 @@ class CentralProcessingUnit:
     def flush(self):
         false = Bit(0)
         units = [self.ram]
-        units += self.registers
+        units += self.selectable_registers
         for unit in units:
             unit.read_enable = false
             unit.write_enable = false
