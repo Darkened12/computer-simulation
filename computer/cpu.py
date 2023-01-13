@@ -19,6 +19,7 @@ class CentralProcessingUnit:
         self.instruction_register = Register(size_in_bits=8)
         self.address_register = Register(size_in_bits=8)
         self.program_counter_register = Register(size_in_bits=8)
+        self.accumulator_register = Register(size_in_bits=8)
         self.status_register = Register(size_in_bits=8)
 
         self.registers = [
@@ -26,8 +27,7 @@ class CentralProcessingUnit:
             self.register_B,
             self.register_C,
             self.register_D,
-            self.instruction_register,
-            self.program_counter_register,
+            self.accumulator_register,
             self.status_register
         ]
         self.instructions = [
@@ -133,7 +133,7 @@ class CentralProcessingUnit:
             self.fetch_phase_two()
             self.decode_phase()
             self.execute_phase()
-            # print(f'instruction_register: {self.instruction_register}, address_register: {self.address_register}, program_counter: {self.program_counter_register}')
+            # print(f'instruction_register: {self.instruction_register}, address_register: {self.address_register}, program_counter: {self.program_counter_register}, accumulator_register: {self.accumulator_register}')
             self.end_phase()
 
         if self.clock_speed_limiter_in_hertz > 0:
@@ -146,6 +146,18 @@ class CentralProcessingUnit:
             execute_cycle()
 
         self._cycle_counter += 1
+
+    def update_status_register(self):
+        self.status_register.write_enable = Bit(1)
+        self.status_register.memory = BitArray(
+            f'00000{self.alu.negative_bit_flag}{self.alu.zero_bit_flag}{self.alu.carry}')
+        self.status_register.write_enable = Bit(0)
+
+    def update_accumulator_register(self):
+        self.accumulator_register.write_enable = Bit(1)
+        self.accumulator_register.memory = self.alu.output
+        self.accumulator_register.write_enable = Bit(0)
+        self.update_status_register()
 
     def LDA(self, address: BitArray):
         """Load contents of RAM {address} into the Register A"""
@@ -193,8 +205,8 @@ class CentralProcessingUnit:
         self.alu.B = reg2.memory
         self.alu.opcode = BitArray(opcode, size=4)
         reg2.read_enable = false
-        reg2.write_enable = true
-        reg2.memory = self.alu.output
+        reg2.read_enable = false
+        self.update_accumulator_register()
 
     def ADD(self, registers: BitArray):
         self._add_sub('0000', registers)
@@ -246,6 +258,7 @@ class CentralProcessingUnit:
         selected_register.write_enable = Bit(1)
 
         selected_register.memory = self.alu.output
+        self.update_status_register()
 
     def DEC(self, register: BitArray):
         self.register_selector.selection = BitArray(register.to_int(), size=2)
@@ -259,3 +272,4 @@ class CentralProcessingUnit:
         selected_register.write_enable = Bit(1)
 
         selected_register.memory = self.alu.output
+        self.update_status_register()

@@ -29,12 +29,20 @@ class Computer:
         self._total_run_time = time.perf_counter() - start_time
 
     def status(self):
-        print(f'execution took: {self._total_run_time} seconds\n'
-              f'average clock speed: {self._cpu.cycle_counter / self._total_run_time} Hz\n'
+        print(f'-----------------------\n'
+              f'execution took: {self._total_run_time} seconds\n'
               f'cycles: {self._cpu.cycle_counter}\n'
-              f'program_counter: {self._cpu.program_counter_register}\n'
+              f'average clock speed: {self._cpu.cycle_counter / self._total_run_time} Hz\n'
+              f'-----------------------\n'
               f'ax: {self._cpu.register_A}\n'
               f'bx: {self._cpu.register_B}\n'
+              f'cx: {self._cpu.register_C}\n'
+              f'dx: {self._cpu.register_D}\n'
+              f'-----------------------\n'
+              f'ac: {self._cpu.accumulator_register}\n'
+              f'sr: {self._cpu.status_register}\n'
+              f'pc: {self._cpu.program_counter_register}\n'
+              f'-----------------------\n'
               f'ram:\n'
               f'{self.ram}')
 
