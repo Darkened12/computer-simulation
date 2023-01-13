@@ -282,33 +282,15 @@ class CentralProcessingUnit:
         self.program_counter_register.memory = address
 
     def JIE(self, address: BitArray):
-        true = Bit(1)
-        self.register_selector.selection = BitArray('00', size=2)
-        reg0 = self.register_selector.output
-        self.register_selector.selection = BitArray('01', size=2)
-        reg1 = self.register_selector.output
-        reg0.read_enable = true
-        reg1.read_enable = true
-        self.alu.A = reg0.memory
-        self.alu.B = reg1.memory
-        self.alu.opcode = BitArray('0001')
-        self._not_skip_increment = ~self.alu.zero_bit_flag
-        self.program_counter_register.write_enable = self.alu.zero_bit_flag
-        instruction_address = BitArray(address.to_int(), size=4)
-        self.program_counter_register.memory = instruction_address
+        self.status_register.read_enable = Bit(1)
+        zero_bit_flag = Bit(int(self.status_register.memory[1]))
+        self._not_skip_increment = ~zero_bit_flag
+        self.program_counter_register.write_enable = zero_bit_flag
+        self.program_counter_register.memory = address
 
     def JNE(self, address: BitArray):
-        true = Bit(1)
-        self.register_selector.selection = BitArray('00', size=2)
-        reg0 = self.register_selector.output
-        self.register_selector.selection = BitArray('01', size=2)
-        reg1 = self.register_selector.output
-        reg0.read_enable = true
-        reg1.read_enable = true
-        self.alu.A = reg0.memory
-        self.alu.B = reg1.memory
-        self.alu.opcode = BitArray('0001')
-        self._not_skip_increment = self.alu.zero_bit_flag
-        self.program_counter_register.write_enable = ~self.alu.zero_bit_flag
-        instruction_address = BitArray(address.to_int(), size=4)
-        self.program_counter_register.memory = instruction_address
+        self.status_register.read_enable = Bit(1)
+        zero_bit_flag = Bit(int(self.status_register.memory[1]))
+        self._not_skip_increment = zero_bit_flag
+        self.program_counter_register.write_enable = ~zero_bit_flag
+        self.program_counter_register.memory = address
