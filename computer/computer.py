@@ -32,7 +32,7 @@ class Computer:
         print(f'execution took: {self._total_run_time} seconds\n'
               f'average clock speed: {self._cpu.cycle_counter / self._total_run_time} Hz\n'
               f'cycles: {self._cpu.cycle_counter}\n'
-              f'program_counter: {self._cpu.instruction_address_register}\n'
+              f'program_counter: {self._cpu.program_counter_register}\n'
               f'ax: {self._cpu.register_A}\n'
               f'bx: {self._cpu.register_B}\n'
               f'ram:\n'

@@ -11,10 +11,25 @@ class CentralProcessingUnit:
         self.alu = alu
         self.ram = ram
 
-        self.register_A = Register()
-        self.register_B = Register()
-        self.instruction_address_register = Register()
-        self.instruction_register = Register()
+        self.register_A = Register(size_in_bits=8)
+        self.register_B = Register(size_in_bits=8)
+        self.register_C = Register(size_in_bits=8)
+        self.register_D = Register(size_in_bits=8)
+
+        self.instruction_register = Register(size_in_bits=8)
+        self.address_register = Register(size_in_bits=8)
+        self.program_counter_register = Register(size_in_bits=8)
+        self.status_register = Register(size_in_bits=8)
+
+        self.registers = [
+            self.register_A,
+            self.register_B,
+            self.register_C,
+            self.register_D,
+            self.instruction_register,
+            self.program_counter_register,
+            self.status_register
+        ]
         self.instructions = [
             self.HLT,
             self.LDA,
@@ -29,7 +44,14 @@ class CentralProcessingUnit:
             self.DEC
         ]
         self.instruction_selector = Demultiplexer(self.instructions)
-        self.register_selector = Demultiplexer([self.register_A, self.register_B])
+        self.register_selector = Demultiplexer([
+            self.register_A,
+            self.register_B,
+            self.register_C,
+            self.register_D,
+            self.program_counter_register,
+            self.status_register
+        ])
 
         self._current_instruction = BitArray(0, size=4)
         self._current_address = BitArray(0, size=4)
@@ -48,28 +70,42 @@ class CentralProcessingUnit:
     def increment_program_counter(self):
         false = Bit(0)
         true = Bit(1)
-        self.instruction_address_register.read_enable = true
-        self.alu.A = self.instruction_address_register.memory
-        self.instruction_address_register.read_enable = false
+        self.program_counter_register.read_enable = true
+        self.alu.A = self.program_counter_register.memory
+        self.program_counter_register.read_enable = false
         self.alu.opcode = BitArray('0011', size=4)
-        self.instruction_address_register.write_enable = self._not_skip_increment
-        self.instruction_address_register.memory = self.alu.output
+        self.program_counter_register.write_enable = self._not_skip_increment
+        self.program_counter_register.memory = self.alu.output
         self._not_skip_increment = true
         self.flush()
 
-    def fetch_phase(self):
+    def fetch_phase_one(self):
         true = Bit(1)
-        self.instruction_address_register.read_enable = true
         self.instruction_register.write_enable = true
+        self.program_counter_register.read_enable = true
         self.ram.read_enable = true
-        self.ram.address = self.instruction_address_register.memory
+
+        self.ram.address = self.program_counter_register.memory
         self.instruction_register.memory = self.ram.bus
+
+        self.flush()
+
+    def fetch_phase_two(self):
+        true = Bit(1)
+        self.address_register.write_enable = true
+        self.program_counter_register.read_enable = true
+        self.ram.read_enable = true
+
+        self.ram.address = self.program_counter_register.memory
+        self.address_register.memory = self.ram.bus
+
         self.flush()
 
     def decode_phase(self):
         self.instruction_register.read_enable = Bit(1)
-        self._current_instruction = BitArray(BitArray.from_bit_array(self.instruction_register.memory[4:]), size=4)
-        self._current_address = BitArray(BitArray.from_bit_array(self.instruction_register.memory[:4]), size=4)
+        self.address_register.read_enable = Bit(1)
+        self._current_instruction = self.instruction_register.memory
+        self._current_address = self.address_register.memory
 
     def execute_phase(self):
         self.instruction_selector.selection = self._current_instruction
@@ -81,19 +117,23 @@ class CentralProcessingUnit:
 
     def flush(self):
         false = Bit(0)
-        for unit in [self.register_A, self.register_B,
-                     self.instruction_register, self.instruction_address_register,
-                     self.ram]:
+        units = [self.ram]
+        units += self.registers
+        for unit in units:
             unit.read_enable = false
             unit.write_enable = false
+
         self.alu.A = BitArray(0, size=8)
         self.alu.B = BitArray(0, size=8)
 
     def cycle(self):
         def execute_cycle():
-            self.fetch_phase()
+            self.fetch_phase_one()
+            self.increment_program_counter()
+            self.fetch_phase_two()
             self.decode_phase()
             self.execute_phase()
+            # print(f'instruction_register: {self.instruction_register}, address_register: {self.address_register}, program_counter: {self.program_counter_register}')
             self.end_phase()
 
         if self.clock_speed_limiter_in_hertz > 0:
@@ -174,9 +214,9 @@ class CentralProcessingUnit:
         self.alu.B = reg1.memory
         self.alu.opcode = BitArray('0001')
         self._not_skip_increment = ~self.alu.zero_bit_flag
-        self.instruction_address_register.write_enable = self.alu.zero_bit_flag
+        self.program_counter_register.write_enable = self.alu.zero_bit_flag
         instruction_address = BitArray(address.to_int(), size=4)
-        self.instruction_address_register.memory = instruction_address
+        self.program_counter_register.memory = instruction_address
 
     def JNE(self, address: BitArray):
         true = Bit(1)
@@ -190,9 +230,9 @@ class CentralProcessingUnit:
         self.alu.B = reg1.memory
         self.alu.opcode = BitArray('0001')
         self._not_skip_increment = self.alu.zero_bit_flag
-        self.instruction_address_register.write_enable = ~self.alu.zero_bit_flag
+        self.program_counter_register.write_enable = ~self.alu.zero_bit_flag
         instruction_address = BitArray(address.to_int(), size=4)
-        self.instruction_address_register.memory = instruction_address
+        self.program_counter_register.memory = instruction_address
 
     def INC(self, register: BitArray):
         self.register_selector.selection = BitArray(register.to_int(), size=2)
