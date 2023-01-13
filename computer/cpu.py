@@ -41,6 +41,8 @@ class CentralProcessingUnit:
             self.INC,
             self.DEC,
             self.CMP,
+            self.JIL,
+            self.JIG,
             self.JIE,
             self.JNE,
         ]
@@ -53,6 +55,10 @@ class CentralProcessingUnit:
             self.program_counter_register,
             self.status_register
         ])
+
+        self.is_equal_mask = BitArray('00000010')
+        self.is_greater_mask = BitArray('00000100')
+        self.is_lesser_mask = BitArray('00000000')
 
         self._current_instruction = BitArray(0, size=4)
         self._current_address = BitArray(0, size=4)
@@ -260,6 +266,20 @@ class CentralProcessingUnit:
         self.alu.opcode = BitArray('0001')
 
         self.update_status_register()
+
+    def JIL(self, address: BitArray):
+        self.status_register.read_enable = Bit(1)
+        is_lesser_flag = Bit(int(self.status_register.memory[2]))
+        self._not_skip_increment = ~is_lesser_flag
+        self.program_counter_register.write_enable = is_lesser_flag
+        self.program_counter_register.memory = address
+
+    def JIG(self, address: BitArray):
+        self.status_register.read_enable = Bit(1)
+        is_lesser_flag = Bit(int(self.status_register.memory[2]))
+        self._not_skip_increment = is_lesser_flag
+        self.program_counter_register.write_enable = ~is_lesser_flag
+        self.program_counter_register.memory = address
 
     def JIE(self, address: BitArray):
         true = Bit(1)
