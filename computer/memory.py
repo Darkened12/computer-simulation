@@ -1,15 +1,16 @@
-from .base import Bit, BitArray, Demultiplexer
 from math import log, ceil
+
+from .base import Bit, BitArray, Demultiplexer
 
 
 class Register:
-    def __init__(self):
-        self._memory = BitArray(0)
+    def __init__(self, size_in_bits: 8):
+        self._memory = BitArray(0, size=size_in_bits)
         self._read_enable = Bit(0)
         self._write_enable = Bit(0)
 
     def __repr__(self):
-        return ''.join(f'{str(byte)}' for byte in self._memory)
+        return str(self._memory)
 
     @property
     def memory(self):
@@ -57,14 +58,15 @@ class RandomAccessMemory:
         self.demux = Demultiplexer(self._memory)
 
     def __repr__(self):
-        return '\n'.join(f'{index:02}: {str(byte)}' for index, byte in enumerate(self.memory))
+        return '\n'.join(f'{index:03}: {str(byte)}' for index, byte in enumerate(self._memory))
 
     def from_list(self, list_: list[str]):
         if len(list_) == self.memory_size:
             for index, byte in enumerate(list_):
-                if len(byte) < 8:
+                if len(byte) != 8:
                     raise TypeError(f'Byte in position "{index}" is not 8 bit long')
-            self.memory = [BitArray(line) for line in list_]
+            self._memory = [BitArray(line) for line in list_]
+            self.demux = Demultiplexer(self._memory)
             return
         raise OverflowError(
             f'Provided list of length "{len(list_)}" does not fit. Current mem_size: "{self.memory_size}" bytes')
