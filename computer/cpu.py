@@ -188,37 +188,37 @@ class CentralProcessingUnit:
         selected_register.read_enable = Bit(1)
         self.ram.bus = selected_register.memory
 
-    def LDA(self, address: BitArray):
+    def LDA(self, ram_address: BitArray):
         """Load contents of RAM {address} into the Register A"""
-        self._load(register_address=BitArray('0000'), ram_address=address)
+        self._load(register_address=BitArray('0000'), ram_address=ram_address)
 
-    def LDB(self, address: BitArray):
+    def LDB(self, ram_address: BitArray):
         """Load contents of RAM {address} into the Register B"""
-        self._load(register_address=BitArray('0001'), ram_address=address)
+        self._load(register_address=BitArray('0001'), ram_address=ram_address)
 
-    def LDC(self, address: BitArray):
+    def LDC(self, ram_address: BitArray):
         """Load contents of RAM {address} into the Register C"""
-        self._load(register_address=BitArray('0010'), ram_address=address)
+        self._load(register_address=BitArray('0010'), ram_address=ram_address)
 
-    def LDD(self, address: BitArray):
+    def LDD(self, ram_address: BitArray):
         """Load contents of RAM {address} into the Register D"""
-        self._load(register_address=BitArray('0011'), ram_address=address)
+        self._load(register_address=BitArray('0011'), ram_address=ram_address)
 
-    def STA(self, address: BitArray):
+    def STA(self, ram_address: BitArray):
         """Stores contents on RAM {address} from Register A"""
-        self._store(register_address=BitArray('0000'), ram_address=address)
+        self._store(register_address=BitArray('0000'), ram_address=ram_address)
 
-    def STB(self, address: BitArray):
+    def STB(self, ram_address: BitArray):
         """Stores contents on RAM {address} from Register B"""
-        self._store(register_address=BitArray('0001'), ram_address=address)
+        self._store(register_address=BitArray('0001'), ram_address=ram_address)
 
-    def STC(self, address: BitArray):
+    def STC(self, ram_address: BitArray):
         """Stores contents on RAM {address} from Register C"""
-        self._store(register_address=BitArray('0010'), ram_address=address)
+        self._store(register_address=BitArray('0010'), ram_address=ram_address)
 
-    def STD(self, address: BitArray):
+    def STD(self, ram_address: BitArray):
         """Stores contents on RAM {address} from Register D"""
-        self._store(register_address=BitArray('0011'), ram_address=address)
+        self._store(register_address=BitArray('0011'), ram_address=ram_address)
 
     def HLT(self, *args, **kwargs):
         self._halt = Bit(1)
@@ -241,14 +241,14 @@ class CentralProcessingUnit:
         reg2.read_enable = false
         self.update_accumulator_register()
 
-    def ADD(self, registers: BitArray):
-        self._add_sub('0000', registers)
+    def ADD(self, register_addresses: BitArray):
+        self._add_sub('0000', register_addresses)
 
-    def SUB(self, registers: BitArray):
-        self._add_sub('0001', registers)
+    def SUB(self, register_addresses: BitArray):
+        self._add_sub('0001', register_addresses)
 
-    def INC(self, register: BitArray):
-        self.register_selector.selection = BitArray(register.to_int(), size=2)
+    def INC(self, register_address: BitArray):
+        self.register_selector.selection = BitArray(register_address.to_int(), size=2)
         selected_register: Register = self.register_selector.output
         selected_register.read_enable = Bit(1)
 
@@ -261,8 +261,8 @@ class CentralProcessingUnit:
         selected_register.memory = self.alu.output
         self.update_status_register()
 
-    def DEC(self, register: BitArray):
-        self.register_selector.selection = BitArray(register.to_int(), size=2)
+    def DEC(self, register_address: BitArray):
+        self.register_selector.selection = BitArray(register_address.to_int(), size=2)
         selected_register: Register = self.register_selector.output
         selected_register.read_enable = Bit(1)
 
@@ -275,11 +275,11 @@ class CentralProcessingUnit:
         selected_register.memory = self.alu.output
         self.update_status_register()
 
-    def CMP(self, registers: BitArray):
+    def CMP(self, register_addresses: BitArray):
         true = Bit(1)
 
-        reg1_address = BitArray(sum(registers[2:]))
-        reg2_address = BitArray(sum(registers[:2]))
+        reg1_address = BitArray(sum(register_addresses[2:]))
+        reg2_address = BitArray(sum(register_addresses[:2]))
         self.register_selector.selection = reg1_address
         reg1 = self.register_selector.output
         self.register_selector.selection = reg2_address
@@ -293,30 +293,30 @@ class CentralProcessingUnit:
 
         self.update_status_register()
 
-    def JIL(self, address: BitArray):
+    def JIL(self, ram_address: BitArray):
         self.status_register.read_enable = Bit(1)
         is_lesser_flag = Bit(int(self.status_register.memory[2]))
         self._not_skip_increment = ~is_lesser_flag
         self.program_counter_register.write_enable = is_lesser_flag
-        self.program_counter_register.memory = address
+        self.program_counter_register.memory = ram_address
 
-    def JIG(self, address: BitArray):
+    def JIG(self, ram_address: BitArray):
         self.status_register.read_enable = Bit(1)
         is_lesser_flag = Bit(int(self.status_register.memory[2]))
         self._not_skip_increment = is_lesser_flag
         self.program_counter_register.write_enable = ~is_lesser_flag
-        self.program_counter_register.memory = address
+        self.program_counter_register.memory = ram_address
 
-    def JIE(self, address: BitArray):
+    def JIE(self, ram_address: BitArray):
         self.status_register.read_enable = Bit(1)
         zero_bit_flag = Bit(int(self.status_register.memory[1]))
         self._not_skip_increment = ~zero_bit_flag
         self.program_counter_register.write_enable = zero_bit_flag
-        self.program_counter_register.memory = address
+        self.program_counter_register.memory = ram_address
 
-    def JNE(self, address: BitArray):
+    def JNE(self, ram_address: BitArray):
         self.status_register.read_enable = Bit(1)
         zero_bit_flag = Bit(int(self.status_register.memory[1]))
         self._not_skip_increment = zero_bit_flag
         self.program_counter_register.write_enable = ~zero_bit_flag
-        self.program_counter_register.memory = address
+        self.program_counter_register.memory = ram_address
