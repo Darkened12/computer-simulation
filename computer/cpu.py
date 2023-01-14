@@ -32,26 +32,28 @@ class CentralProcessingUnit:
             self.status_register
         ]
         self.instructions = [
-            self.HLT,   # 00000000 -> int 0
-            self.LDA,   # 00000001 -> int 1
-            self.LDB,   # 00000010 -> int 2
-            self.LDC,   # 00000011 -> int 3
-            self.LDD,   # 00000100 -> int 4
-            self.STA,   # 00000101 -> int 5
-            self.STB,   # 00000110 -> int 6
-            self.STC,   # 00000111 -> int 7
-            self.STD,   # 00001000 -> int 8
-            self.ADD,   # 00001001 -> int 9
-            self.SUB,   # 00001010 -> int 10
-            self.INC,   # 00001011 -> int 11
-            self.DEC,   # 00001100 -> int 12
-            self.CMP,   # 00001101 -> int 13
-            self.JIL,   # 00001110 -> int 14
-            self.JIG,   # 00001111 -> int 15
-            self.JIE,   # 00010000 -> int 16
-            self.JNE,   # 00010001 -> int 17
+            self.HLT,  # 00000000 -> int 0
+            self.LDA,  # 00000001 -> int 1
+            self.LDB,  # 00000010 -> int 2
+            self.LDC,  # 00000011 -> int 3
+            self.LDD,  # 00000100 -> int 4
+            self.STA,  # 00000101 -> int 5
+            self.STB,  # 00000110 -> int 6
+            self.STC,  # 00000111 -> int 7
+            self.STD,  # 00001000 -> int 8
+            self.ADD,  # 00001001 -> int 9
+            self.SUB,  # 00001010 -> int 10
+            self.INC,  # 00001011 -> int 11
+            self.DEC,  # 00001100 -> int 12
+            self.CMP,  # 00001101 -> int 13
+            self.JIL,  # 00001110 -> int 14
+            self.JIG,  # 00001111 -> int 15
+            self.JIE,  # 00010000 -> int 16
+            self.JNE,  # 00010001 -> int 17
             self.PUSH,  # 00010010 -> int 18
-            self.POP,   # 00010011 -> int 19
+            self.POP,  # 00010011 -> int 19
+            self.CALL,  # 00010100 -> int 20
+            self.RET,  # 00010101 -> int 21
         ]
         self.instruction_selector = Demultiplexer(self.instructions)
         self.register_selector = Demultiplexer([
@@ -131,7 +133,7 @@ class CentralProcessingUnit:
 
     def flush(self):
         false = Bit(0)
-        units = [self.ram]
+        units = [self.ram, self.program_counter_register, self.stack_pointer]
         units += self.selectable_registers
         for unit in units:
             unit.read_enable = false
@@ -345,3 +347,26 @@ class CentralProcessingUnit:
         self.stack_pointer.read_enable = true
 
         register.memory = self.stack_pointer.memory
+
+    def CALL(self, ram_address: BitArray):
+        true = Bit(1)
+        false = Bit(0)
+
+        self.program_counter_register.read_enable = true
+        self.stack_pointer.write_enable = true
+        self.stack_pointer.memory = self.program_counter_register.memory
+        self.stack_pointer.write_enable = false
+        self.program_counter_register.read_enable = false
+
+        self.program_counter_register.write_enable = true
+        self.program_counter_register.memory = ram_address
+
+    def RET(self):
+        true = Bit(1)
+        false = Bit(0)
+
+        self.program_counter_register.write_enable = true
+        self.stack_pointer.read_enable = true
+        self.program_counter_register = self.stack_pointer.memory
+        self.stack_pointer.read_enable = false
+        self.program_counter_register.write_enable = false
