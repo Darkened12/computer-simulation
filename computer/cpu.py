@@ -21,6 +21,7 @@ class CentralProcessingUnit:
         self.program_counter_register = Register(size_in_bits=8)
         self.accumulator_register = Register(size_in_bits=8)
         self.status_register = Register(size_in_bits=8)
+        self.stack_pointer = Register(size_in_bits=8)
 
         self.selectable_registers = [
             self.register_A,
@@ -31,24 +32,26 @@ class CentralProcessingUnit:
             self.status_register
         ]
         self.instructions = [
-            self.HLT,
-            self.LDA,
-            self.LDB,
-            self.LDC,
-            self.LDD,
-            self.STA,
-            self.STB,
-            self.STC,
-            self.STD,
-            self.ADD,
-            self.SUB,
-            self.INC,
-            self.DEC,
-            self.CMP,
-            self.JIL,
-            self.JIG,
-            self.JIE,
-            self.JNE,
+            self.HLT,   # 00000000 -> int 0
+            self.LDA,   # 00000001 -> int 1
+            self.LDB,   # 00000010 -> int 2
+            self.LDC,   # 00000011 -> int 3
+            self.LDD,   # 00000100 -> int 4
+            self.STA,   # 00000101 -> int 5
+            self.STB,   # 00000110 -> int 6
+            self.STC,   # 00000111 -> int 7
+            self.STD,   # 00001000 -> int 8
+            self.ADD,   # 00001001 -> int 9
+            self.SUB,   # 00001010 -> int 10
+            self.INC,   # 00001011 -> int 11
+            self.DEC,   # 00001100 -> int 12
+            self.CMP,   # 00001101 -> int 13
+            self.JIL,   # 00001110 -> int 14
+            self.JIG,   # 00001111 -> int 15
+            self.JIE,   # 00010000 -> int 16
+            self.JNE,   # 00010001 -> int 17
+            self.PUSH,  # 00010010 -> int 18
+            self.POP,   # 00010011 -> int 19
         ]
         self.instruction_selector = Demultiplexer(self.instructions)
         self.register_selector = Demultiplexer([
@@ -320,3 +323,25 @@ class CentralProcessingUnit:
         self._not_skip_increment = zero_bit_flag
         self.program_counter_register.write_enable = ~zero_bit_flag
         self.program_counter_register.memory = ram_address
+
+    def PUSH(self, register_address: BitArray):
+        true = Bit(1)
+
+        self.register_selector.selection = register_address
+        register = self.register_selector.output
+
+        register.read_enable = true
+        self.stack_pointer.write_enable = true
+
+        self.stack_pointer.memory = register.memory
+
+    def POP(self, register_address: BitArray):
+        true = Bit(1)
+
+        self.register_selector.selection = register_address
+        register = self.register_selector.output
+
+        register.write_enable = true
+        self.stack_pointer.read_enable = true
+
+        register.memory = self.stack_pointer.memory

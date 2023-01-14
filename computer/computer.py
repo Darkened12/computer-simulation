@@ -42,6 +42,7 @@ class Computer:
               f'ac: {self._cpu.accumulator_register}\n'
               f'sr: {self._cpu.status_register}\n'
               f'pc: {self._cpu.program_counter_register}\n'
+              f'sp: {self._cpu.stack_pointer}\n'
               f'-----------------------\n'
               f'ram:\n'
               f'{self.ram}')
