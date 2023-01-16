@@ -42,7 +42,7 @@ class Assembler:
             result.append(variable)
         return result
 
-    def _get_variable_ram_adress(self, variable_name: str) -> Optional[str]:
+    def _get_variable_ram_address(self, variable_name: str) -> Optional[str]:
         for variable in self.variables:
             if variable['variable_name'] == variable_name:
                 return variable['ram_address']
@@ -50,11 +50,11 @@ class Assembler:
     def _get_instructions(self) -> List[Dict[str, str]]:
         result = []
         for instruction in self.parsed_assembly_code['text']:
-            ram_address = self._get_variable_ram_adress(instruction['first_statement'])
+            ram_address = self._get_variable_ram_address(instruction['first_statement'])
             if ram_address is not None:
                 instruction['first_statement'] = ram_address
 
-            ram_address = self._get_variable_ram_adress(instruction['second_statement'])
+            ram_address = self._get_variable_ram_address(instruction['second_statement'])
             if ram_address is not None:
                 instruction['second_statement'] = ram_address
 
