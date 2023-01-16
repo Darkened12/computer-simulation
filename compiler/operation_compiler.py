@@ -56,10 +56,10 @@ class OperationCompiler:
             'sr': '0101',
         }
 
-    def parse_line(self, line: Dict[str, str]) -> str:
-        method_to_execute: Callable[[line], str] = self.methods[line['operation']]
-        compiled_line: str = method_to_execute(line)
-        return compiled_line
+    def parse_line(self, line: Dict[str, str]) -> List[str]:
+        method_to_execute: Callable[[line], List[str]] = self.methods[line['operation']]
+        compiled_lines: List[str] = method_to_execute(line)
+        return compiled_lines
 
     @staticmethod
     def is_binary_string(string):

@@ -64,8 +64,8 @@ class Assembler:
     def _compile_instructions(self) -> List[str]:
         compiled_code: List[str] = []
         for line in self.instructions:
-            compiled_line: str = self.operation_compiler.parse_line(line)
-            compiled_code.append(compiled_line)
+            compiled_lines: List[str] = self.operation_compiler.parse_line(line)
+            compiled_code += compiled_lines
         return compiled_code
 
     def _compile_variables(self) -> List[str]:
