@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Callable
+from typing import Dict, Callable, List
 
 from .errors import CompilerError
 from .utils import get_byte_array_from_integer
@@ -35,15 +35,25 @@ class OperationCompiler:
             'st': self.store,
             'add': self.add_and_sub,
             'sub': self.add_and_sub,
-            'mov': self.move,
-            'jie': self.jmpeq,
-            'jne': self.jmpne,
-            'inc': self.increment,
-            'dec': self.decrement,
+            'inc': self.single_register_operation,
+            'dec': self.single_register_operation,
+            'jil': self.jmp,
+            'jig': self.jmp,
+            'jie': self.jmp,
+            'jne': self.jmp,
+            'push': self.single_register_operation,
+            'pop': self.single_register_operation,
+            'call': self.call,
+            'ret': self.ret,
+
         }
         self.register_codes = {
-            'ax': '00',
-            'bx': '01'
+            'ax': '0000',
+            'bx': '0001',
+            'cx': '0010',
+            'dx': '0011',
+            'acc': '0100',
+            'sr': '0101',
         }
 
     def parse_line(self, line: Dict[str, str]) -> str:
@@ -85,31 +95,29 @@ class OperationCompiler:
         except KeyError:
             raise CompilerError(f'Register "{assembly_register_code}" is not a valid register')
 
-    def load(self, line: Dict[str, str]) -> str:
+    def load(self, line: Dict[str, str]) -> List[str]:
         register = line['first_statement']
 
-        if register == 'ax':
-            opcode = self.opcodes['lda']
-        elif register == 'bx':
-            opcode = self.opcodes['ldb']
-        else:
-            raise CompilerError(f'"{line}" -> Register "{register}" does not exist')
+        try:
+            opcode = self.opcodes[f'ld{register[0]}']
+        except KeyError:
+            raise CompilerError(f'"{line}" -> Register "{register}" is invalid for this operation or does not exist')
 
-        return f'{opcode}{self._get_ram_address(line)}'
+        memory_address = self._get_ram_address(line)
+        return [opcode, memory_address]
 
-    def store(self, line: Dict[str, str]) -> str:
+    def store(self, line: Dict[str, str]) -> List[str]:
         register = line['first_statement']
 
-        if register == 'ax':
-            opcode = self.opcodes['sta']
-        elif register == 'bx':
-            opcode = self.opcodes['stb']
-        else:
-            raise CompilerError(f'"{line}" -> Register "{register}" does not exist')
+        try:
+            opcode = self.opcodes[f'st{register[0]}']
+        except KeyError:
+            raise CompilerError(f'"{line}" -> Register "{register}" is invalid for this operation or does not exist')
 
-        return f'{opcode}{self._get_ram_address(line)}'
+        memory_address = self._get_ram_address(line)
+        return [opcode, memory_address]
 
-    def add_and_sub(self, line: Dict[str, str]) -> str:
+    def add_and_sub(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)
         try:
             reg0 = self.get_register_address(line['first_statement'])
@@ -117,31 +125,22 @@ class OperationCompiler:
         except CompilerError as err:
             raise CompilerError(f'"{line}" -> {err}')
 
-        return f'{opcode}{reg0}{reg1}'
+        return [opcode, f'{reg0}{reg1}']
 
-    def move(self, line: Dict[str, str]) -> str:
-        reg = self.get_register_address(line['first_statement'])
-        line['operation'] = 'sta' if reg == '00' else 'stb'
+    def jmp(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)
         memory_address = self._get_ram_address(line)
-        return f'{opcode}{memory_address}'
+        return [opcode, memory_address]
 
-    def jmpeq(self, line: Dict[str, str]) -> str:
-        opcode = self.get_opcode(line)
-        memory_address = self._get_ram_address(line)
-        return f'{opcode}{memory_address}'
-
-    def jmpne(self, line: Dict[str, str]) -> str:
-        opcode = self.get_opcode(line)
-        memory_address = self._get_ram_address(line)
-        return f'{opcode}{memory_address}'
-
-    def increment(self, line: Dict[str, str]) -> str:
+    def single_register_operation(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)
         register_address = self.get_register_address(line['first_statement'])
-        return f'{opcode}00{register_address}'
+        return [opcode, register_address]
 
-    def decrement(self, line: Dict[str, str]) -> str:
+    def call(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)
-        register_address = self.get_register_address(line['first_statement'])
-        return f'{opcode}00{register_address}'
+        memory_address = self._get_ram_address(line)
+        return [opcode, memory_address]
+
+    def ret(self, line: Dict[str, str]) -> List[str]:
+        return [self.get_opcode(line), '00000000']
