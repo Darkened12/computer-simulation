@@ -79,7 +79,7 @@ class OperationCompiler:
             except ValueError:
                 raise CompilerError(f'"{line}" -> Wrong RAM syntax')
 
-        if len(address) != 4 or not self.is_binary_string(address):
+        if len(address) != 8 or not self.is_binary_string(address):
             raise CompilerError(f'"{line}" -> Wrong RAM address')
         return address
 
@@ -135,7 +135,7 @@ class OperationCompiler:
     def single_register_operation(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)
         register_address = self.get_register_address(line['first_statement'])
-        return [opcode, register_address]
+        return [opcode, f'0000{register_address}']
 
     def call(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)

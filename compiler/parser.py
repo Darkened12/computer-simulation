@@ -96,6 +96,7 @@ def _parse_subroutines_section(assembly_code: List[str]) -> List[Dict[str, str]]
 
             current_subroutine = {'label': f'{line.replace(":", "")}', 'lines': []}
         elif line == 'ret':
+            current_subroutine['lines'].append({'operation': 'ret', "first_statement": None, 'second_statement': None})
             subroutines.append(current_subroutine)
             current_subroutine = {}
         else:
