@@ -361,12 +361,12 @@ class CentralProcessingUnit:
         self.program_counter_register.write_enable = true
         self.program_counter_register.memory = ram_address
 
-    def RET(self):
+    def RET(self, *args, **kwargs):
         true = Bit(1)
         false = Bit(0)
 
         self.program_counter_register.write_enable = true
         self.stack_pointer.read_enable = true
-        self.program_counter_register = self.stack_pointer.memory
+        self.program_counter_register.memory = self.stack_pointer.memory
         self.stack_pointer.read_enable = false
         self.program_counter_register.write_enable = false
