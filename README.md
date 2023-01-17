@@ -110,7 +110,7 @@ Same as before, doesn't need further explanation. Just be aware of negative numb
 Jumps to the given RAM reference/variable name if `ax`'s value is equal to `bx`s: 
 
 ```asm
-section. text
+section .text
     jie $0      ; infinite loop
 ```
 
