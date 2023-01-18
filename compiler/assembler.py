@@ -55,14 +55,14 @@ class Assembler:
 
     def _get_subroutines(self) -> List[Dict[str, str | list]]:
         result = []
-        for subroutine, address in zip(
-                self.parsed_assembly_code['subroutines'], reversed(range(self.ram_size_in_bytes - len(self.variables)))
-        ):
+        previous_subroutine_address: int = self.ram_size_in_bytes - len(self.variables)
+        for subroutine in self.parsed_assembly_code['subroutines']:
             parsed_subroutine = subroutine.copy()
-            label_address_in_int = address - len(subroutine['lines']) * 2
+            label_address_in_int = previous_subroutine_address - len(subroutine['lines']) * 2
             parsed_subroutine.update({'ram_address': self.int_to_binary_address(label_address_in_int)})
             parsed_subroutine['lines'] = [self._parse_subroutine_instruction_ram_address(instruction) for instruction in parsed_subroutine['lines']]
             result.append(parsed_subroutine)
+            previous_subroutine_address = label_address_in_int
 
         return result
 
