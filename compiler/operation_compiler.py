@@ -76,7 +76,7 @@ class OperationCompiler:
         if address.startswith('$'):
             address_integer = address.replace('$', '')
             try:
-                return get_byte_array_from_integer(int(address_integer), 4)
+                return get_byte_array_from_integer(int(address_integer), 8)
             except ValueError:
                 raise CompilerError(f'"{line}" -> Wrong RAM syntax')
 

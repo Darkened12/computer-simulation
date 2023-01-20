@@ -1,5 +1,5 @@
 from math import pow
-from typing import Union
+from typing import Union, Tuple
 
 
 class Bit(int):
@@ -41,6 +41,13 @@ class BitArray:
     @property
     def carry(self):
         return len(self._str_repr) - self.size
+
+    def divide(self, bit_size: int) -> Tuple:
+        upper_half = self._array[:bit_size]
+        lower_half = self._array[bit_size:]
+        upper_half = BitArray.from_bit_array(upper_half)
+        lower_half = BitArray.from_bit_array(lower_half)
+        return BitArray(upper_half, size=bit_size), BitArray(lower_half, size=bit_size)
 
     def to_int(self):
         return int(self._str_repr, 2)
@@ -113,4 +120,4 @@ if __name__ == '__main__':
     # print(demux.output)
     # print(demux._input)
 
-    print(BitArray(15)[4:])
+    print(BitArray('01000001').divide(4))

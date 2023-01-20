@@ -292,8 +292,7 @@ class CentralProcessingUnit:
     def CMP(self, register_addresses: BitArray):
         true = Bit(1)
 
-        reg1_address = BitArray(sum(register_addresses[2:]))
-        reg2_address = BitArray(sum(register_addresses[:2]))
+        reg2_address, reg1_address = register_addresses.divide(4)
         self.register_selector.selection = reg1_address
         reg1 = self.register_selector.output
         self.register_selector.selection = reg2_address
