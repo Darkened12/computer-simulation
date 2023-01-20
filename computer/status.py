@@ -6,7 +6,7 @@ from .cpu import CentralProcessingUnit
 class StatusEmitter:
     def __init__(self, cpu_object: CentralProcessingUnit):
         self._cpu = cpu_object
-        self._callbacks_to_execute_after_event_emits: List[Callable[[str, CentralProcessingUnit], None]] = []
+        self._callbacks_to_execute_after_cpu_method: List[Callable[[str, CentralProcessingUnit], None]] = []
 
         self._cpu.fetch_phase_one = self._add_emitter_to_cpu_method(self._cpu.fetch_phase_one)
         self._cpu.fetch_phase_two = self._add_emitter_to_cpu_method(self._cpu.fetch_phase_two)
@@ -17,10 +17,10 @@ class StatusEmitter:
     def _add_emitter_to_cpu_method(self, method: Callable) -> Callable:
         def wrapper():
             method()
-            for callback in self._callbacks_to_execute_after_event_emits:
+            for callback in self._callbacks_to_execute_after_cpu_method:
                 callback(method.__name__, self._cpu)
         return wrapper
 
     def on_cpu_update(self, callback: Callable[[str, CentralProcessingUnit], None]) -> None:
-        self._callbacks_to_execute_after_event_emits.append(callback)
+        self._callbacks_to_execute_after_cpu_method.append(callback)
 
