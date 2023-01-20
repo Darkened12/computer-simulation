@@ -36,7 +36,7 @@ There's an already written [simple script](scripts/count_to_ten.asm) on `/script
 Any line without instructions contaning a `;` sign will be ignored. If the line contains code, anything after the `;` sign will be ignored:
 
 ```asm
-section. data
+section .data
     someVariable = 0    ; hey look! it's an empty variable!
 ```
 
@@ -60,7 +60,7 @@ You may pass a direct integer value (between 0-255) or you may pass a RAM addres
 an horizontal line of the RAM (1 byte):
 
 ```asm
-section. data
+section .data
     variableWithDirectValue = 255
     someValueInRam = $15
 ```
@@ -110,7 +110,7 @@ Same as before, doesn't need further explanation. Just be aware of negative numb
 Jumps to the given RAM reference/variable name if `ax`'s value is equal to `bx`s: 
 
 ```asm
-section. text
+section .text
     jie $0      ; infinite loop
 ```
 
