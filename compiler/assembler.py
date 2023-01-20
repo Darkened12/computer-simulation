@@ -11,7 +11,7 @@ class Assembler:
             self,
             path_to_assembly_file: str,
             output_path: str = None,
-            ram_size_in_bytes: int = 16,
+            ram_size_in_bytes: int = 256,
             operation_compiler=None
     ):
         self.path_to_assembly_file = path_to_assembly_file
