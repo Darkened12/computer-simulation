@@ -240,8 +240,7 @@ class CentralProcessingUnit:
     def _add_sub(self, opcode: str, registers: BitArray):
         true = Bit(1)
         false = Bit(0)
-        reg1_address = BitArray(sum(registers[2:]), size=4)
-        reg2_address = BitArray(sum(registers[:2]), size=4)
+        reg2_address, reg1_address = registers.divide(4)
         self.register_selector.selection = reg1_address
         reg1 = self.register_selector.output
         self.register_selector.selection = reg2_address
