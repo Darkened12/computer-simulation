@@ -56,7 +56,7 @@ class Assembler:
     def _get_subroutines(self) -> List[Dict[str, str | list]]:
         result = []
         previous_subroutine_address: int = self.ram_size_in_bytes - len(self.variables)
-        for subroutine in self.parsed_assembly_code['subroutines']:
+        for subroutine in reversed(self.parsed_assembly_code['subroutines']):
             parsed_subroutine = subroutine.copy()
             label_address_in_int = previous_subroutine_address - len(subroutine['lines']) * 2
             parsed_subroutine.update({'ram_address': self.int_to_binary_address(label_address_in_int)})
@@ -64,7 +64,7 @@ class Assembler:
             result.append(parsed_subroutine)
             previous_subroutine_address = label_address_in_int
 
-        return result
+        return list(reversed(result))
 
     def _parse_instruction_ram_address(self, instruction: Dict[str, Optional[str]]) -> Dict[str, Optional[str]]:
         ram_address = self._get_variable_ram_address(instruction['first_statement'])
