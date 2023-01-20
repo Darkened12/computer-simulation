@@ -92,7 +92,6 @@ class CentralProcessingUnit:
         self.alu.opcode = BitArray('0011', size=4)
         self.program_counter_register.write_enable = self._not_skip_increment
         self.program_counter_register.memory = self.alu.output
-        self._not_skip_increment = true
         self.flush()
 
     def fetch_phase_one(self):
@@ -105,6 +104,7 @@ class CentralProcessingUnit:
         self.instruction_register.memory = self.ram.bus
 
         self.flush()
+        self.increment_program_counter()
 
     def fetch_phase_two(self):
         true = Bit(1)
@@ -130,6 +130,7 @@ class CentralProcessingUnit:
 
     def end_phase(self):
         self.increment_program_counter()
+        self._not_skip_increment = Bit(1)
 
     def flush(self):
         false = Bit(0)
@@ -142,10 +143,18 @@ class CentralProcessingUnit:
         self.alu.A = BitArray(0, size=8)
         self.alu.B = BitArray(0, size=8)
 
+    def next_phase(self):
+        phases = [
+            self.fetch_phase_one, self.fetch_phase_two, self.decode_phase, self.execute_phase, self.end_phase
+        ]
+        while not self._halt:
+            for phase in phases:
+                phase()
+                yield phase.__name__
+
     def cycle(self):
         def execute_cycle():
             self.fetch_phase_one()
-            self.increment_program_counter()
             self.fetch_phase_two()
             self.decode_phase()
             self.execute_phase()
@@ -231,8 +240,8 @@ class CentralProcessingUnit:
     def _add_sub(self, opcode: str, registers: BitArray):
         true = Bit(1)
         false = Bit(0)
-        reg1_address = BitArray(sum(registers[2:]))
-        reg2_address = BitArray(sum(registers[:2]))
+        reg1_address = BitArray(sum(registers[2:]), size=4)
+        reg2_address = BitArray(sum(registers[:2]), size=4)
         self.register_selector.selection = reg1_address
         reg1 = self.register_selector.output
         self.register_selector.selection = reg2_address
@@ -360,6 +369,7 @@ class CentralProcessingUnit:
 
         self.program_counter_register.write_enable = true
         self.program_counter_register.memory = ram_address
+        self._not_skip_increment = false
 
     def RET(self, *args, **kwargs):
         true = Bit(1)
