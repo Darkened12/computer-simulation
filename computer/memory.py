@@ -10,7 +10,7 @@ class Register:
         self._write_enable = Bit(0)
 
     def __repr__(self):
-        return str(self._memory)
+        return f'{self._memory} ({self._memory.to_int()})'
 
     @property
     def memory(self):
