@@ -37,6 +37,7 @@ class OperationCompiler:
             'sub': self.add_and_sub,
             'inc': self.single_register_operation,
             'dec': self.single_register_operation,
+            'cmp': self.cmp,
             'jil': self.jmp,
             'jig': self.jmp,
             'jie': self.jmp,
@@ -131,6 +132,16 @@ class OperationCompiler:
         opcode = self.get_opcode(line)
         memory_address = self._get_ram_address(line)
         return [opcode, memory_address]
+
+    def cmp(self, line: Dict[str, str]) -> List[str]:
+        opcode = self.get_opcode(line)
+        try:
+            reg0 = self.get_register_address(line['first_statement'])
+            reg1 = self.get_register_address(line['second_statement'])
+        except CompilerError as err:
+            raise CompilerError(f'"{line}" -> {err}')
+
+        return [opcode, f'{reg0}{reg1}']
 
     def single_register_operation(self, line: Dict[str, str]) -> List[str]:
         opcode = self.get_opcode(line)
