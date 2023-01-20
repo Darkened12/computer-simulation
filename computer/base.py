@@ -1,5 +1,5 @@
-from typing import Union
 from math import pow
+from typing import Union
 
 
 class Bit(int):
@@ -94,7 +94,6 @@ class Demultiplexer:
 
     @property
     def output(self):
-
         return self._input[self.selection.to_int()]
 
     @output.setter
