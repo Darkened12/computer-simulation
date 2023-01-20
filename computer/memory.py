@@ -4,7 +4,7 @@ from .base import Bit, BitArray, Demultiplexer
 
 
 class Register:
-    def __init__(self, size_in_bits: 8):
+    def __init__(self, size_in_bits: int):
         self._memory = BitArray(0, size=size_in_bits)
         self._read_enable = Bit(0)
         self._write_enable = Bit(0)
