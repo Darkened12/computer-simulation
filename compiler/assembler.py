@@ -23,7 +23,7 @@ class Assembler:
         self.ram_size_in_bytes = ram_size_in_bytes
 
         self.raw_labels = self._extract_labels()
-        self.variables = self._get_variables()
+        self.variables_and_labels = self._get_variables_and_labels()
         self.subroutines = self._get_subroutines()
         self.instructions = self._get_instructions()
 
@@ -34,10 +34,10 @@ class Assembler:
     def _add_instructions_to_compiled_code(self):
         pass
 
-    def _get_variables(self) -> List[Dict[str, str]]:
+    def _get_variables_and_labels(self) -> List[Dict[str, str]]:
         result = []
         for reference, parsed_variable in zip(
-                reversed(range(self.ram_size_in_bytes)), self.parsed_assembly_code['data']
+                reversed(range(self.ram_size_in_bytes)), self.parsed_assembly_code['data'] + self.raw_labels
         ):
             variable = parsed_variable.copy()
             variable.update({'ram_address': self.int_to_binary_address(reference)})
@@ -48,18 +48,24 @@ class Assembler:
         labels = []
         for index, instruction in enumerate(self.parsed_assembly_code['text']):
             if instruction['operation'] == 'label':
-                labels.append({'label': instruction['operation'].replace(':', ''), 'index': index})
+                labels.append({'label': instruction['first_statement'].replace(':', ''), 'index': index})
+
+        self.parsed_assembly_code['text'] = list(filter(
+            lambda instruction: instruction['operation'] != 'label', self.parsed_assembly_code['text']))
 
         for label in labels:
-            self.parsed_assembly_code['text'].pop(label['index'])
-            label.update({'value': self.int_to_binary_address(label['index'])})
+            label.update({'value': self.int_to_binary_address(label['index'] + 2)})
 
         return labels
 
-    def _get_variable_ram_address(self, variable_name: str) -> Optional[str]:
-        for variable in self.variables:
-            if variable['variable_name'] == variable_name:
-                return variable['ram_address']
+    def _get_variable_or_label_ram_address(self, variable_name: str) -> Optional[str]:
+        for variable in self.variables_and_labels:
+            try:
+                if variable['variable_name'] == variable_name:
+                    return variable['ram_address']
+            except KeyError:
+                if variable['label'] == variable_name:
+                    return variable['value']
 
     def _get_subroutine_ram_address(self, label_name: str) -> Optional[str]:
         for subroutine in self.subroutines:
@@ -68,7 +74,7 @@ class Assembler:
 
     def _get_subroutines(self) -> List[Dict[str, str | list]]:
         result = []
-        previous_subroutine_address: int = self.ram_size_in_bytes - len(self.variables)
+        previous_subroutine_address: int = self.ram_size_in_bytes - len(self.variables_and_labels)
         for subroutine in reversed(self.parsed_assembly_code['subroutines']):
             parsed_subroutine = subroutine.copy()
             label_address_in_int = previous_subroutine_address - len(subroutine['lines']) * 2
@@ -80,7 +86,7 @@ class Assembler:
         return list(reversed(result))
 
     def _parse_instruction_ram_address(self, instruction: Dict[str, Optional[str]]) -> Dict[str, Optional[str]]:
-        ram_address = self._get_variable_ram_address(instruction['first_statement'])
+        ram_address = self._get_variable_or_label_ram_address(instruction['first_statement'])
         if ram_address is not None:
             instruction['first_statement'] = ram_address
         elif ram_address is None:
@@ -88,17 +94,17 @@ class Assembler:
             if ram_address is not None:
                 instruction['first_statement'] = ram_address
 
-        ram_address = self._get_variable_ram_address(instruction['second_statement'])
+        ram_address = self._get_variable_or_label_ram_address(instruction['second_statement'])
         if ram_address is not None:
             instruction['second_statement'] = ram_address
         return instruction
 
     def _parse_subroutine_instruction_ram_address(self, instruction: Dict[str, Optional[str]]) -> Dict[str, Optional[str]]:
-        ram_address = self._get_variable_ram_address(instruction['first_statement'])
+        ram_address = self._get_variable_or_label_ram_address(instruction['first_statement'])
         if ram_address is not None:
             instruction['first_statement'] = ram_address
 
-        ram_address = self._get_variable_ram_address(instruction['second_statement'])
+        ram_address = self._get_variable_or_label_ram_address(instruction['second_statement'])
         if ram_address is not None:
             instruction['second_statement'] = ram_address
         return instruction
@@ -119,7 +125,7 @@ class Assembler:
 
     def _compile_variables(self) -> List[str]:
         compiled_code: List[str] = []
-        for line in self.variables:
+        for line in self.variables_and_labels:
             compiled_code.append(get_byte_array_from_integer(int(line['value']), 8))
         return list(reversed(compiled_code))
 
