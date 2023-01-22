@@ -1,6 +1,9 @@
 from typing import List, Dict, Optional
 
-from .errors import CompilerError
+try:
+    from .errors import CompilerError
+except ImportError:
+    from errors import CompilerError
 
 
 def _load_assembly_file(path_to_file: str) -> List[str]:
