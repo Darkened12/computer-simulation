@@ -1,6 +1,9 @@
 import tkinter as tk
 
+from compiler.operation_compiler import OperationCompiler
+from computer.base import Bit
 from computer.computer import Computer
+from computer.memory import Register
 from computer.status import StatusEmitter
 
 
@@ -11,10 +14,21 @@ def run(ram_data):
             text=f'{text}: {register}'))
         label.pack()
 
+    def get_operation_from_opcode(operation_compiler: OperationCompiler, register: Register) -> str:
+        instructions = {v: k for k, v in operation_compiler.opcodes.items()}
+        register.read_enable = Bit(1)
+        try:
+            result: str = instructions[str(register.memory)]
+        except KeyError:
+            result = ''
+        register.read_enable = Bit(0)
+        return result
+
     root = tk.Tk()
     root.title("8 bit computer")
     root.geometry("300x400")
 
+    oc = OperationCompiler()
     pc = Computer()
     pc.ram.from_list(ram_data)
     emitter = StatusEmitter(pc.cpu)
@@ -26,7 +40,17 @@ def run(ram_data):
 
 
     generate_label('program_counter_register', pc.cpu.program_counter_register)
-    generate_label('instruction_register', pc.cpu.instruction_register)
+
+    instruction_register_text = f'instruction_register "{get_operation_from_opcode(oc, pc.cpu.instruction_register)}"'
+    instruction_register = tk.Label(root,
+                                    text=instruction_register_text)
+    emitter.on_cpu_update(lambda event, cpu: instruction_register.config(
+        text=f'instruction_register "{get_operation_from_opcode(oc, pc.cpu.instruction_register)}": {pc.cpu.instruction_register}'))
+    instruction_register.pack()
+
+    # generate_label(f'instruction_register "{get_operation_from_opcode(oc, pc.cpu.instruction_register)}"',
+    #                pc.cpu.instruction_register)
+
     generate_label('address_register', pc.cpu.address_register)
     generate_label('stack_pointer', pc.cpu.stack_pointer)
 
