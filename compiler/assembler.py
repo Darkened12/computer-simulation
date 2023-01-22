@@ -22,6 +22,7 @@ class Assembler:
         self.parsed_assembly_code = get_parsed_code_from_file(path_to_assembly_file)
         self.ram_size_in_bytes = ram_size_in_bytes
 
+        self.raw_labels = self._extract_labels()
         self.variables = self._get_variables()
         self.subroutines = self._get_subroutines()
         self.instructions = self._get_instructions()
@@ -42,6 +43,18 @@ class Assembler:
             variable.update({'ram_address': self.int_to_binary_address(reference)})
             result.append(variable)
         return result
+
+    def _extract_labels(self) -> List[Dict[str, str | int]]:
+        labels = []
+        for index, instruction in enumerate(self.parsed_assembly_code['text']):
+            if instruction['operation'] == 'label':
+                labels.append({'label': instruction['operation'].replace(':', ''), 'index': index})
+
+        for label in labels:
+            self.parsed_assembly_code['text'].pop(label['index'])
+            label.update({'value': self.int_to_binary_address(label['index'])})
+
+        return labels
 
     def _get_variable_ram_address(self, variable_name: str) -> Optional[str]:
         for variable in self.variables:
