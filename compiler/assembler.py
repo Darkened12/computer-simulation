@@ -46,15 +46,17 @@ class Assembler:
 
     def _extract_labels(self) -> List[Dict[str, str | int]]:
         labels = []
+        index_shifting = 0
         for index, instruction in enumerate(self.parsed_assembly_code['text']):
             if instruction['operation'] == 'label':
-                labels.append({'label': instruction['first_statement'].replace(':', ''), 'index': index})
+                labels.append({'label': instruction['first_statement'].replace(':', ''), 'index': index - index_shifting})
+                index_shifting += 1
 
         self.parsed_assembly_code['text'] = list(filter(
             lambda instruction: instruction['operation'] != 'label', self.parsed_assembly_code['text']))
 
         for label in labels:
-            label.update({'value': self.int_to_binary_address(label['index'] + 2)})
+            label.update({'value': self.int_to_binary_address(label['index'] * 2)})
 
         return labels
 
