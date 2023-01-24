@@ -46,14 +46,15 @@ class CentralProcessingUnit:
             self.INC,  # 00001011 -> int 11
             self.DEC,  # 00001100 -> int 12
             self.CMP,  # 00001101 -> int 13
-            self.JIL,  # 00001110 -> int 14
-            self.JIG,  # 00001111 -> int 15
-            self.JIE,  # 00010000 -> int 16
-            self.JNE,  # 00010001 -> int 17
-            self.PUSH,  # 00010010 -> int 18
-            self.POP,  # 00010011 -> int 19
-            self.CALL,  # 00010100 -> int 20
-            self.RET,  # 00010101 -> int 21
+            self.JMP,  # 00001110 -> int 14
+            self.JIL,  # 00001111 -> int 15
+            self.JIG,  # 00010000 -> int 16
+            self.JIE,  # 00010001 -> int 17
+            self.JNE,  # 00010010 -> int 18
+            self.PUSH,  # 00010011 -> int 19
+            self.POP,  # 00010100 -> int 20
+            self.CALL,  # 00010101 -> int 21
+            self.RET,  # 00010110 -> int 22
         ]
         self.instruction_selector = Demultiplexer(self.instructions)
         self.register_selector = Demultiplexer([
@@ -304,6 +305,11 @@ class CentralProcessingUnit:
         self.alu.opcode = BitArray('0001')
 
         self.update_status_register()
+
+    def JMP(self, ram_address: BitArray):
+        self._not_skip_increment = Bit(0)
+        self.program_counter_register.write_enable = Bit(1)
+        self.program_counter_register.memory = ram_address
 
     def JIL(self, ram_address: BitArray):
         self.status_register.read_enable = Bit(1)
