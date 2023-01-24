@@ -6,16 +6,12 @@
 
 section .data
     counter = 0
-    desiredValue = 10
-    increment = 1
+    desiredValue = 255
 
 
 section .text
     ld ax, counter          ; adding counter to the A register
-    ld bx, increment        ; number to add to register A
-
-    add bx, ax              ; adding B register to A register
-    mov ax, counter         ; storing the value of the A register to the counter variable
     ld bx, desiredValue     ; loading the desiredValue to the B register
-    jne $2                  ; then checking if A register is equal to B, if not, loop back to the add operation
 
+    inc ax                  ; incrementing 1 to A register
+    jne $2                  ; then checking if A register is equal to B, if not, loop back to the add operation
