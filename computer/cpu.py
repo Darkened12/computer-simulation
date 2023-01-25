@@ -55,6 +55,7 @@ class CentralProcessingUnit:
             self.POP,  # 00010100 -> int 20
             self.CALL,  # 00010101 -> int 21
             self.RET,  # 00010110 -> int 22
+            self.DLY,  # 00010111 -> int 23
         ]
         self.instruction_selector = Demultiplexer(self.instructions)
         self.register_selector = Demultiplexer([
@@ -384,3 +385,9 @@ class CentralProcessingUnit:
         self.program_counter_register.memory = self.stack_pointer.memory
         self.stack_pointer.read_enable = false
         self.program_counter_register.write_enable = false
+
+    def DLY(self, register_address: BitArray):
+        self.register_selector.selection = register_address
+        register: Register = self.register_selector.output
+        register.read_enable = Bit(1)
+        time.sleep(register.memory.to_int())

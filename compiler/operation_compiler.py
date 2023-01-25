@@ -30,6 +30,7 @@ class OperationCompiler:
             'pop': '00010100',
             'call': '00010101',
             'ret': '00010110',
+            'dly': '00010111',
         }
         self.methods = {
             'ld': self.load,
@@ -48,7 +49,7 @@ class OperationCompiler:
             'pop': self.single_register_operation,
             'call': self.call,
             'ret': self.ret,
-
+            'dly': self.dly,
         }
         self.register_codes = {
             'ax': '0000',
@@ -157,3 +158,6 @@ class OperationCompiler:
 
     def ret(self, line: Dict[str, str]) -> List[str]:
         return [self.get_opcode(line), '00000000']
+
+    def dly(self, line: Dict[str, str]) -> List[str]:
+        return self.single_register_operation(line)
